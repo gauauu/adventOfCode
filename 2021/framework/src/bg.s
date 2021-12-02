@@ -33,6 +33,167 @@ titleLoop:
   rts
 .endproc
 
+.proc displayError
+  lda #9
+  sta 0
+  sta 1
+  ;purposefully fall through
+
+.endproc
+
+.export buffer16BitDisplay
+.proc buffer16BitDisplay
+
+  ldx #0
+  lda #0
+
+  NEXT_BG
+  NEXT_BG
+  NEXT_BG
+  NEXT_BG
+  NEXT_BG
+
+  lda #$30
+  NEXT_BG
+  lda #$5f
+  NEXT_BG
+
+  lda 1
+  clc
+  lsr
+  lsr
+  lsr
+  lsr
+  clc
+  adc #$30
+  NEXT_BG
+
+  lda 1
+  and #$0f
+  clc
+  adc #$30
+  NEXT_BG
+
+  lda 0
+  clc
+  lsr
+  lsr
+  lsr
+  lsr
+  clc
+  adc #$30
+  NEXT_BG
+
+  lda 0
+  and #$0f
+  clc
+  adc #$30
+  NEXT_BG
+
+  lda #0
+  NEXT_BG
+  NEXT_BG
+  NEXT_BG
+  NEXT_BG
+  NEXT_BG
+  NEXT_BG
+  NEXT_BG
+
+.endproc
+
+
+
+.export buffer32BitDisplay
+.proc buffer32BitDisplay
+
+  ldx #0
+  lda #0
+
+  NEXT_BG
+  NEXT_BG
+  NEXT_BG
+
+  lda #$30
+  NEXT_BG
+  lda #$5f
+  NEXT_BG
+
+
+  lda 3
+  clc
+  lsr
+  lsr
+  lsr
+  lsr
+  clc
+  adc #$30
+  NEXT_BG
+
+  lda 3
+  and #$0f
+  clc
+  adc #$30
+  NEXT_BG
+
+  lda 2
+  clc
+  lsr
+  lsr
+  lsr
+  lsr
+  clc
+  adc #$30
+  NEXT_BG
+
+  lda 2
+  and #$0f
+  clc
+  adc #$30
+  NEXT_BG
+
+
+
+  lda 1
+  clc
+  lsr
+  lsr
+  lsr
+  lsr
+  clc
+  adc #$30
+  NEXT_BG
+
+  lda 1
+  and #$0f
+  clc
+  adc #$30
+  NEXT_BG
+
+  lda 0
+  clc
+  lsr
+  lsr
+  lsr
+  lsr
+  clc
+  adc #$30
+  NEXT_BG
+
+  lda 0
+  and #$0f
+  clc
+  adc #$30
+  NEXT_BG
+
+  lda #0
+  NEXT_BG
+  NEXT_BG
+  NEXT_BG
+  NEXT_BG
+  NEXT_BG
+
+.endproc
+
 
 .proc draw_updated_answer
   lda #$20

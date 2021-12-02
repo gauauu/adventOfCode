@@ -12,6 +12,9 @@
 
 .global text_buffer
 .global load_main_palette
+.global buffer16BitDisplay
+.global buffer32BitDisplay
+.global displayError 
 
 .globalzp ci,cj, tempPtr, tempA, tempB, tempC, tempD, tempU16, tempU16B, tempU16C, tempS16, tempS16B, tempS16C, tempU16D
 
@@ -25,72 +28,47 @@ OAM = $200
 .endmacro
 
 .macro DISPLAY_ANSWER_16 u16
-  ldx #0
-  lda #0
-
-  NEXT_BG
-  NEXT_BG
-  NEXT_BG
-  NEXT_BG
-  NEXT_BG
-
-  lda #$30
-  NEXT_BG
-  lda #$5f
-  NEXT_BG
-
-  lda u16+1
-  clc
-  lsr
-  lsr
-  lsr
-  lsr
-  clc
-  adc #$30
-  NEXT_BG
-
-  lda u16+1
-  and #$0f
-  clc
-  adc #$30
-  NEXT_BG
-
   lda u16
-  clc
-  lsr
-  lsr
-  lsr
-  lsr
-  clc
-  adc #$30
-  NEXT_BG
+  sta 0
+  lda u16+1
+  sta 1
+  jsr buffer16BitDisplay
 
-  lda u16
-  and #$0f
-  clc
-  adc #$30
-  NEXT_BG
-
-  lda #0
-  NEXT_BG
-  NEXT_BG
-  NEXT_BG
-  NEXT_BG
-  NEXT_BG
-  NEXT_BG
-  NEXT_BG
 .endmacro
+
+.macro DISPLAY_ANSWER_32 u32
+  lda u32
+  sta 0
+  lda u32+1
+  sta 1
+  lda u32+2
+  sta 2
+  lda u32+3
+  sta 3
+  jsr buffer32BitDisplay
+
+.endmacro
+
 
 .endif
 
 .macro waitVBlank
 
-  lda nmis
+  lda frameTick
 :
-  cmp nmis
+  cmp frameTick
   beq :-
 
 .endmacro 
+
+.macro PPU_SCREEN_ON_MAIN
+  ldx #0
+  ldy #0
+  lda #VBLANK_NMI|BG_0000|OBJ_1000
+  sec
+  jsr ppu_screen_on
+.endmacro
+
 
 .macro uploadOAM
  
@@ -98,5 +76,112 @@ OAM = $200
   sta OAMADDR
   lda #>OAM
   sta OAM_DMA
+
+.endmacro
+
+
+.macro SET_U16 var,val
+  lda #<val
+  sta var
+  lda #>val
+  sta var+1
+.endmacro
+
+
+.macro SET_U32 var,lo,hi
+  SET_U16 var,lo
+  SET_U16 var+2,hi
+.endmacro
+
+
+.macro ADD_16_8 u16, u8
+  lda u16
+  clc
+  adc u8
+  sta u16
+  lda u16+1
+  adc #0
+  sta u16+1
+.endmacro
+
+.macro SBC_16_8 u16, u8
+  lda u16
+  sec
+  sbc u8
+  sta u16
+  lda u16+1
+  sbc #0
+  sta u16+1
+.endmacro
+
+
+.macro ADD_16_CONST u16, val
+  lda u16
+  clc
+  adc #<val
+  sta u16
+  lda u16+1
+  adc #>val
+  sta u16+1
+.endmacro
+
+.macro ADD_16_16 aa,bb
+  lda aa
+  clc
+  adc bb
+  sta aa
+  lda aa+1
+  adc bb+1
+  sta aa+1
+.endmacro
+
+.macro ADD_32_16 aa,bb
+  lda aa
+  clc
+  adc bb
+  sta aa
+  lda aa+1
+  adc bb+1
+  sta aa+1
+  lda aa+2
+  adc #0
+  sta aa+2
+  lda aa+3
+  adc #0
+  sta aa+3
+.endmacro
+
+
+.macro BEQ_16 u16,label
+
+  .local nojmp
+  lda u16
+  bne nojmp
+  lda u16+1
+  bne nojmp
+  jmp label
+nojmp:
+
+.endmacro
+
+.macro BNE_16 u16,label
+
+  lda u16
+  bne label
+  lda u16+1
+  bne label
+.endmacro
+
+.macro MULT_16_16 aa,bb,result
+  .local loop
+  .local done
+
+  SET_U32 result,0,0
+loop:
+  ADD_32_16 result,aa
+  ADD_16_CONST bb, -1
+  BNE_16 bb,loop
+
+done:
 
 .endmacro

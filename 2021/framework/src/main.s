@@ -4,10 +4,8 @@
 
 
 .segment "ZEROPAGE"
-nmis:          .res 1
+frameTick:          .res 1
 oam_used:      .res 1  ; starts at 0
-cur_keys:      .res 2
-new_keys:      .res 2
 
 .segment "BSS"
 text_buffer:   .res 16
@@ -15,7 +13,7 @@ text_buffer:   .res 16
 .segment "CODE"
 
 .proc nmi_handler
-  inc nmis
+  inc frameTick
   rti
 .endproc
 
@@ -25,6 +23,7 @@ text_buffer:   .res 16
 
 .import aoc_1a
 .import aoc_1b
+.import aoc_2a
 
 .proc main
 
@@ -35,34 +34,20 @@ text_buffer:   .res 16
 
   jsr draw_bg
 
-  jsr aoc_1b
+  jsr aoc_2a
   jsr draw_updated_answer
 
   ldx oam_used
   jsr ppu_clear_oam
 
-  ; Turn the screen on
-  ldx #0
-  ldy #0
-  lda #VBLANK_NMI|BG_0000|OBJ_1000
-  sec
-  jsr ppu_screen_on
+  PPU_SCREEN_ON_MAIN
 
 
 forever:
 
-
   waitVBlank
-
-  
-  ; Turn the screen on
-  ldx #0
-  ldy #0
-  lda #VBLANK_NMI|BG_0000|OBJ_1000
-  sec
-  jsr ppu_screen_on
+  PPU_SCREEN_ON_MAIN
   jmp forever
 
-; And that's all there is to it.
 .endproc
 
