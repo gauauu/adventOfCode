@@ -28,9 +28,6 @@ text_buffer:   .res 16
 
 .proc main
 
-  ; Now the PPU has stabilized, and we're still in vblank.  Copy the
-  ; palette right now because if you load a palette during forced
-  ; blank (not vblank), it'll be visible as a rainbow streak.
   jsr load_main_palette
 
   jsr draw_bg
@@ -44,11 +41,11 @@ text_buffer:   .res 16
   PPU_SCREEN_ON_MAIN
 
 
-forever:
-
+  ;just spin on the answer....
+:
   waitVBlank
   PPU_SCREEN_ON_MAIN
-  jmp forever
+  jmp :-
 
 .endproc
 
