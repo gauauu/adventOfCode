@@ -17,6 +17,7 @@
 .global displayError 
 
 .globalzp ci,cj, tempPtr, tempA, tempB, tempC, tempD, tempU16, tempU16B, tempU16C, tempS16, tempS16B, tempS16C, tempU16D
+.globalzp tempU32A
 
 
 OAM = $200
@@ -115,6 +116,69 @@ OAM = $200
 .endmacro
 
 
+
+.macro ADD_32_8 u32, u8
+  lda u32
+  clc
+  adc u8
+  sta u32
+
+  lda u32+1
+  adc #0
+  sta u32+1
+
+  lda u32+2
+  adc #0
+  sta u32+2
+
+  lda u32+3
+  adc #0
+  sta u32+3
+
+.endmacro
+
+.macro SBC_32_8 u32, u8
+  lda u32
+  sec
+  sbc u8
+  sta u32
+
+  lda u32+1
+  sbc #0
+  sta u32+1
+
+  lda u32+2
+  sbc #0
+  sta u32+2
+
+  lda u32+3
+  sbc #0
+  sta u32+3
+.endmacro
+
+
+.macro ADD_32_32 u32, bb
+  lda u32
+  clc
+  adc bb
+  sta u32
+
+  lda u32+1
+  adc bb+1
+  sta u32+1
+
+  lda u32+2
+  adc bb+2
+  sta u32+2
+
+  lda u32+3
+  adc bb+3
+  sta u32+3
+
+.endmacro
+
+
+
 .macro ADD_16_CONST u16, val
   lda u16
   clc
@@ -152,6 +216,42 @@ OAM = $200
 .endmacro
 
 
+.macro SIGN_EXTEND_A
+	.local skip
+		ora #$7F
+		bmi skip
+		lda #0
+skip:
+.endmacro
+
+
+
+.macro ADD_U32_S16 u32,s16
+  lda s16+1
+  SIGN_EXTEND_A
+  sta ci
+
+  lda u32
+  clc
+  adc s16
+  sta u32
+
+  lda u32+1
+  adc s16+1
+  sta u32+1
+
+  lda u32+2
+  adc ci
+  sta u32+2
+
+  lda u32+3
+  adc ci
+  sta u32+3
+
+
+.endmacro
+
+
 .macro BEQ_16 u16,label
 
   .local nojmp
@@ -172,6 +272,9 @@ nojmp:
   bne label
 .endmacro
 
+
+
+
 .macro MULT_16_16 aa,bb,result
   .local loop
   .local done
@@ -179,6 +282,21 @@ nojmp:
   SET_U32 result,0,0
 loop:
   ADD_32_16 result,aa
+  ADD_16_CONST bb, -1
+  BNE_16 bb,loop
+
+done:
+
+.endmacro
+
+
+.macro MULT_32_16 aa,bb,result
+  .local loop
+  .local done
+
+  SET_U32 result,0,0
+loop:
+  ADD_32_32 result,aa
   ADD_16_CONST bb, -1
   BNE_16 bb,loop
 

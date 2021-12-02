@@ -24,6 +24,7 @@ text_buffer:   .res 16
 .import aoc_1a
 .import aoc_1b
 .import aoc_2a
+.import aoc_2b
 
 .proc main
 
@@ -34,7 +35,7 @@ text_buffer:   .res 16
 
   jsr draw_bg
 
-  jsr aoc_2a
+  jsr aoc_2b
   jsr draw_updated_answer
 
   ldx oam_used

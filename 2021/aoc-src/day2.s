@@ -12,9 +12,10 @@ eof:
 COMMAND = tempB
 VAL = tempC
 
-DEPTH = tempU16D
+DEPTH = tempU32A
 HORIZ = tempU16C
 
+AIM = tempS16
 
 
 .export aoc_2a
@@ -61,10 +62,10 @@ goForward:
   ADD_16_8 HORIZ, VAL
   jmp next
 goUp:
-  SBC_16_8 DEPTH, VAL
+  SBC_32_8 DEPTH, VAL
   jmp next
 goDown:
-  ADD_16_8 DEPTH, VAL
+  ADD_32_8 DEPTH, VAL
   jmp next
 
 next:
@@ -80,5 +81,80 @@ done:
   rts
 
 .endproc
+
+
+
+.export aoc_2b
+.proc aoc_2b
+
+  SET_U16 DEPTH,0
+  SET_U16 HORIZ,0
+  SET_U16 AIM,0
+
+  ;set pointer to the word list
+  SET_U16 tempPtr,values
+
+mainLoop:
+  ;if we hit eof, we're done
+  lda tempPtr+1
+  cmp #>(eof)
+  bne :+
+  lda tempPtr
+  cmp #<(eof)
+  bne :+
+    jmp done
+:
+
+  ;load command and value. 
+  ; everything 8-bit values this time!
+  ldy #0
+  lda (tempPtr),y
+  sta COMMAND
+  iny
+  lda (tempPtr),y
+  sta VAL
+
+  ;switch based on command
+  lda COMMAND
+  cmp #forward
+  beq goForward
+  cmp #up
+  beq goUp
+  cmp #down
+  beq goDown
+  ;;;never should get here!
+  jmp displayError
+
+goForward:
+  ADD_16_8 HORIZ, VAL
+  ldx VAL
+:
+    ADD_U32_S16 DEPTH,AIM
+    dex
+    bne :-
+
+  jmp next
+goUp:
+  SBC_16_8 AIM, VAL
+  jmp next
+goDown:
+  ADD_16_8 AIM, VAL
+  jmp next
+
+next:
+
+  ;go to next number
+  ADD_16_CONST tempPtr, 2
+  jmp mainLoop
+
+done:
+  MULT_32_16 DEPTH,HORIZ,5
+
+  DISPLAY_ANSWER_32 5
+  rts
+
+.endproc
+
+
 
 

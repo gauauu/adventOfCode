@@ -18,6 +18,7 @@ tempS16:    .res 2
 tempS16B:   .res 2
 tempS16C:   .res 2
 tempPtr:    .res 2
+tempU32A:   .res 4
 
 
 .segment "CODE"
