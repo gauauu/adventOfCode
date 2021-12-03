@@ -25,6 +25,8 @@ text_buffer:   .res 16
 .import aoc_1b
 .import aoc_2a
 .import aoc_2b
+.import aoc_3a
+.import aoc_3b
 
 .proc main
 
@@ -32,7 +34,7 @@ text_buffer:   .res 16
 
   jsr draw_bg
 
-  jsr aoc_2b
+  jsr aoc_3b
   jsr draw_updated_answer
 
   ldx oam_used
@@ -44,7 +46,10 @@ text_buffer:   .res 16
   ;just spin on the answer....
 :
   waitVBlank
+  uploadOAM
   PPU_SCREEN_ON_MAIN
+  ldx oam_used
+  jsr ppu_clear_oam
   jmp :-
 
 .endproc

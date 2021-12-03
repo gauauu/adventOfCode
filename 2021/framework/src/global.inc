@@ -17,7 +17,10 @@
 .global displayError 
 
 .globalzp ci,cj, tempPtr, tempA, tempB, tempC, tempD, tempU16, tempU16B, tempU16C, tempS16, tempS16B, tempS16C, tempU16D
+.globalzp tempPtr2, tempPtr3
 .globalzp tempU32A
+
+.globalzp macroTemp
 
 
 OAM = $200
@@ -276,14 +279,31 @@ nojmp:
 
 
 .macro MULT_16_16 aa,bb,result
+  .local notZero
   .local loop
   .local done
+
+  lda bb
+  bne notZero
+  lda bb+1
+  bne notZero
+
+  lda #0
+  sta result
+  sta result+1
+  sta result+2
+  sta result+3
+
+  jmp done
+notZero:
+  COPY_16 bb,macroTemp
+
 
   SET_U32 result,0,0
 loop:
   ADD_32_16 result,aa
-  ADD_16_CONST bb, -1
-  BNE_16 bb,loop
+  ADD_16_CONST macroTemp, -1
+  BNE_16 macroTemp,loop
 
 done:
 
@@ -291,15 +311,117 @@ done:
 
 
 .macro MULT_32_16 aa,bb,result
+
+  .local notZero
   .local loop
   .local done
+
+  lda bb
+  bne notZero
+  lda bb+1
+  bne notZero
+  lda #0
+  sta result
+  sta result+1
+  sta result+2
+  sta result+3
+
+  jmp done
+notZero:
+
+  COPY_16 bb,macroTemp
+
 
   SET_U32 result,0,0
 loop:
   ADD_32_32 result,aa
-  ADD_16_CONST bb, -1
-  BNE_16 bb,loop
+  ADD_16_CONST macroTemp, -1
+  BNE_16 macroTemp,loop
 
 done:
+
+.endmacro
+
+
+.macro LSR_16_BY_8 u16,u8
+  .local done
+  .local loop
+  ldx u8
+  beq done
+loop:
+  lsr u16+1
+  ror u16
+  dex
+  bne loop
+done:
+
+ 
+.endmacro
+
+.macro CMP_16 aa, bb
+  .local done
+
+  lda aa+1
+  cmp bb+1
+  bne done
+  lda aa
+  cmp bb
+done:
+
+.endmacro
+
+.macro ASL_16_BY_8 u16, u8
+  .local done
+  .local loop
+  ldx u8
+  beq done
+loop:
+  asl u16
+  rol u16+1
+  dex
+  bne loop
+done:
+
+.endmacro
+
+.macro ORA_16 aa, bb
+  lda aa
+  ora bb
+  sta aa
+  lda aa+1
+  ora bb+1
+  sta aa+1
+
+.endmacro
+
+.macro INC_16 u16
+  ADD_16_CONST u16,1
+.endmacro
+
+.macro CMP_16_CONST u16, val
+ .local done
+  lda u16+1
+  cmp #>val
+  bne done
+  lda u16
+  cmp #<val
+done:
+
+.endmacro
+
+.macro COPY_16 from,to
+  lda from
+  sta to
+  lda from+1
+  sta to+1
+.endmacro
+
+.macro EOR_16_CONST u16, val
+  lda u16
+  eor #<val
+  sta u16
+  lda u16+1
+  eor #>val
+  sta u16+1
 
 .endmacro

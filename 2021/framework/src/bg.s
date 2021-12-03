@@ -33,13 +33,6 @@ titleLoop:
   rts
 .endproc
 
-.proc displayError
-  lda #9
-  sta 0
-  sta 1
-  ;purposefully fall through
-
-.endproc
 
 .export buffer16BitDisplay
 .proc buffer16BitDisplay
@@ -98,9 +91,19 @@ titleLoop:
   NEXT_BG
   NEXT_BG
   NEXT_BG
+  rts
 
 .endproc
 
+.proc displayError
+  lda #9
+  sta 0
+  sta 1
+  sta 2
+  sta 3
+  ;purposefully fall through
+
+.endproc
 
 
 .export buffer32BitDisplay
