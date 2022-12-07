@@ -1,5 +1,3 @@
-
-
 let lines = List.ofSeq(System.IO.File.ReadLines("day6Data"))
 
 let initial = Seq.toList(List.head lines)
