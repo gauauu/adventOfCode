@@ -107,8 +107,23 @@ let rec totalOver max soFar (node: Node) =
     else
         // printfn "discrading %s so %i" node.name result
         (soFar + result)
+        
 
-printfn "%O" (addTotals parsedDirs.node)
+let rec smallestOver value (node : Node) =
+    let mine = if node.total >= value then
+                    node.total
+                else
+                    999999999
+    if List.length node.children = 0 then
+        mine
+    else
+        let childrenMapped = List.map (smallestOver value) node.children
+        List.min [mine; List.min childrenMapped]
+        
+
+let withTotals = (addTotals parsedDirs.node)
+let unused = 70000000 - withTotals.total
+let needed = 30000000 - unused
+printfn "%i" (smallestOver needed withTotals)
 printfn "%i" (totalOver 100000 0 (addTotals parsedDirs.node))
-
 
